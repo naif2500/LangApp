@@ -45,7 +45,7 @@ function UploadPage() {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
-        'Authorization': `DeepL-Auth-Key 52bc488e-8ce5-4853-9c09-a0e3ea22eb38:fx`
+        'Authorization': `DeepL-Auth-Key `
       },
       body: new URLSearchParams({
         text: word,
