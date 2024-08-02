@@ -17,14 +17,18 @@
   },
   "dependencies": {
     "@auth0/nextjs-auth0": "^3.5.0",
-    "@fortawesome/fontawesome-svg-core": "^6.5.0",
-    "@fortawesome/free-solid-svg-icons": "^6.5.0",
-    "@fortawesome/react-fontawesome": "^0.2.0",
+    "@fortawesome/fontawesome-svg-core": "^6.6.0",
+    "@fortawesome/free-brands-svg-icons": "^6.6.0",
+    "@fortawesome/free-solid-svg-icons": "^6.6.0",
+    "@fortawesome/react-fontawesome": "^0.2.2",
     "concurrently": "^8.2.0",
     "cors": "^2.8.5",
     "dotenv": "^16.0.3",
     "express": "^4.18.2",
     "express-jwt": "^8.0",
+    "flag-icon-css": "^4.1.7",
+    "flag-icons": "^7.2.3",
+    "framer-motion": "^11.3.19",
     "helmet": "^7.1.0",
     "highlight.js": "^11.9.0",
     "jwks-rsa": "^3.1.0",
@@ -33,7 +37,10 @@
     "nodemon": "^3.0.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "reactstrap": "^9.1.5"
+    "react-icons": "^5.2.1",
+    "react-slick": "^0.30.2",
+    "reactstrap": "^9.1.5",
+    "slick-carousel": "^1.8.1"
   },
   "devDependencies": {
     "@babel/core": "^7.23.0",

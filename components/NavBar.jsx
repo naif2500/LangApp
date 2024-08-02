@@ -14,7 +14,7 @@ const NavBar = () => {
     <nav className="bg-white shadow-md">
       <div className="container mx-auto flex items-center justify-between py-4 px-6">
         <div className="flex items-center">
-          <div className="logo" />
+          <img src="/logo1.svg" alt="Logo" width="150" height="50" />
           <div className="hidden lg:flex space-x-4 ml-4">
             <PageLink href="/" className="nav-link" testId="navbar-home">
               Home

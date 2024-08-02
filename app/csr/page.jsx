@@ -41,26 +41,22 @@ function UploadPage() {
   }
 
   async function translateWord(word) {
-    const response = await fetch('https://api-free.deepl.com/v2/translate', {
+    const response = await fetch('/api/translate', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'Authorization': `DeepL-Auth-Key 52bc488e-8ce5-4853-9c09-a0e3ea22eb38:fx`
+        'Content-Type': 'application/json',
       },
-      body: new URLSearchParams({
-        text: word,
-        source_lang: 'EN',
-        target_lang: 'ES'
-      })
+      body: JSON.stringify({ word })
     });
-
+  
     if (!response.ok) {
       throw new Error(`Error: ${response.statusText}`);
     }
-
+  
     const data = await response.json();
-    return data.translations[0].text;
+    return data.translation;
   }
+  
 
   return (
     <div style={{ textAlign: 'center', marginTop: '50px' }}>
