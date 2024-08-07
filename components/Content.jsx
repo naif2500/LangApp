@@ -1,28 +1,27 @@
 import React from 'react';
-import { Row, Col } from 'reactstrap';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
-import contentData from '../utils/contentData';
 
 const Content = () => (
-  <div className="next-steps my-5" data-testid="content">
-    <h2 className="my-5 text-center" data-testid="content-title">
-      What can I do next?
-    </h2>
-    <Row className="d-flex justify-content-between" data-testid="content-items">
-      {contentData.map((col, i) => (
-        <Col key={i} md={5} className="mb-4">
-          <h6 className="mb-3">
-            <a href={col.link}>
-              <FontAwesomeIcon icon="link" className="mr-2" />
-              {col.title}
-            </a>
-          </h6>
-          <p>{col.description}</p>
-        </Col>
-      ))}
-    </Row>
-  </div>
+  <div className="bg-white-100 min-h-[70vh] flex items-center">
+      <div className="container mx-auto flex flex-col lg:flex-row items-center p-6 lg:space-x-6">
+        <div className="flex-1 mt-6 lg:mt-0">
+          <div className="mockup-window bg-base-300 border min-h-[315px]">
+            <div className="bg-base-200 flex flex-col justify-center items-center px-4 py-16">
+              <div className="mb-4">Hola</div>
+             
+            </div>
+          </div>
+        </div>
+        <div className="flex-1 text-left">
+          <h2 className=" font-bold text-gray-900">Welcome to Our Service</h2>
+          <p className="mt-4 text-lg text-gray-700">
+            Discover the best solutions for your business needs. We provide top-notch services to help you succeed in the competitive market.
+          </p>
+          
+        </div>
+        
+      </div>
+    </div>
 );
 
 export default Content;
