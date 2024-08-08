@@ -13,9 +13,19 @@ const Content = () => (
           </div>
         </div>
         <div className="flex-1 text-left">
-          <h2 className=" font-bold text-gray-900">Welcome to Our Service</h2>
-          <p className="mt-4 text-lg text-gray-700">
-            Discover the best solutions for your business needs. We provide top-notch services to help you succeed in the competitive market.
+          <h2 className=" font-bold text-gray-900">How it works</h2>
+          <p className="mt-4 text-sm text-gray-700">
+          Step 1: Choose Your Content
+Paste the text you're passionate about—whether it’s lyrics from a French song, a scene from a Spanish movie, or a passage from a Japanese manga. Learning a language becomes more fun and meaningful when it’s centered around what you love.
+
+Step 2: Set Your Languages
+Select your source language (the language of the text) and the target language (the one you want to learn). Whether you’re brushing up on your high school Spanish or diving into Japanese for the first time, you set the pace.
+
+Step 3: Start Learning
+Our app translates the text into your target language, but here’s the twist: instead of just giving you the answers, we let you guess the translations. Start with individual words—correct guesses will help you unlock full sentences.
+
+Step 4: Level Up
+As you accurately translate more words, the app gradually increases the length and complexity of the text. You'll start to form sentences, then paragraphs, and eventually, you'll be able to understand and translate the entire text. The more you play, the more you learn!
           </p>
           
         </div>

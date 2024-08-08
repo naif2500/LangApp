@@ -10,9 +10,10 @@ function WordProvider({ children }) {
   const [targetLang, setTargetLang] = useState('ES'); // Default target language
   const [sourceLang, setSourceLang] = useState('EN'); // Default source language
   const [correctGuesses, setCorrectGuesses] = useState([]); // Store correct guesses
+  const [partialSentence, setPartialSentence] = useState([]); // Store the partially constructed sentence as an array of words
 
   return (
-    <WordContext.Provider value={{ words, setWords, targetLang, setTargetLang, sourceLang, setSourceLang, correctGuesses, setCorrectGuesses }}>
+    <WordContext.Provider value={{ words, setWords, targetLang, setTargetLang, sourceLang, setSourceLang, correctGuesses, setCorrectGuesses, partialSentence, setPartialSentence }}>
       {children}
     </WordContext.Provider>
   );
@@ -118,7 +119,7 @@ function UploadPage({ onTextSubmit }) {
 }
 
 function GuessingGame() {
-  const { words, targetLang, correctGuesses, setCorrectGuesses } = useWords(); // Access context values
+  const { words, targetLang, correctGuesses, setCorrectGuesses, setWords } = useWords();
   const [currentWord, setCurrentWord] = useState(null);
   const [userInput, setUserInput] = useState('');
   const [message, setMessage] = useState('');
@@ -129,15 +130,62 @@ function GuessingGame() {
     }
   }, [words]);
 
+  useEffect(() => {
+    updatePartialSentence();
+  }, [correctGuesses]);
+
   function checkAnswer() {
     if (userInput.toLowerCase() === currentWord.english.toLowerCase()) {
       setMessage('Correct!');
       setCorrectGuesses(prevGuesses => [...prevGuesses, currentWord]); // Store correct guesses
+
+      // If the current word is a partial sentence, mark it so it won't form new sentences
+      if (currentWord.canFormSentence !== undefined) {
+        currentWord.canFormSentence = true;
+        setWords(prevWords => prevWords.map(word =>
+          word.english === currentWord.english ? { ...word, canFormSentence: true } : word
+        ));
+      }
+
     } else {
       setMessage(`Incorrect. The correct answer is ${currentWord.english}`);
     }
     setCurrentWord(words[Math.floor(Math.random() * words.length)]);
     setUserInput('');
+  }
+
+  function updatePartialSentence() {
+    const englishWords = words.map(word => word.english); // Original sentence words
+    const correctIndices = correctGuesses.map(guess => englishWords.indexOf(guess.english));
+
+    // Filter out words that are marked as complete sentences and shouldn't form new sentences
+    const nonSentenceWords = words.filter(word => !word.canFormSentence);
+    const nonSentenceEnglishWords = nonSentenceWords.map(word => word.english);
+    const nonSentenceIndices = correctGuesses
+      .map(guess => nonSentenceEnglishWords.indexOf(guess.english))
+      .filter(index => index !== -1);
+
+    // Check for consecutive indices
+    nonSentenceIndices.sort((a, b) => a - b);
+    let tempSentence = [];
+    for (let i = 0; i < nonSentenceIndices.length - 1; i++) {
+      if (nonSentenceIndices[i + 1] - nonSentenceIndices[i] === 1) {
+        // Build the partial sentence from consecutive correct guesses
+        tempSentence.push(correctGuesses[i][targetLang.toLowerCase()]);
+        if (tempSentence.length === 2) {
+          tempSentence.push(correctGuesses[i + 1][targetLang.toLowerCase()]);
+
+          // Add the formed 3-word sentence as a new "word" in the words array
+          const partialSentence = {
+            [targetLang.toLowerCase()]: tempSentence.join(' '),
+            english: correctGuesses.slice(i, i + 2).map(guess => guess.english).join(' '),
+            canFormSentence: false // Initially, set this to false since it's a new sentence
+          };
+          setWords(prevWords => [...prevWords, partialSentence]);
+          break; // Stop after forming a valid 3-word sequence
+        }
+      }
+    }
   }
 
   if (!currentWord) return <p>Loading...</p>;
