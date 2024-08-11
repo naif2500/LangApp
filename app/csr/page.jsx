@@ -40,7 +40,8 @@ function UploadPage({ onTextSubmit }) {
 
   async function handleTextSubmit() {
     setError(null);
-    const wordsArray = inputText.split(' ');
+    // Remove punctuation and commas, then split the words
+    const wordsArray = inputText.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g,"").split(' ');
     try {
       onTextSubmit(); // Notify parent component that translation is starting
       const translatedArray = await Promise.all(
@@ -55,6 +56,7 @@ function UploadPage({ onTextSubmit }) {
       setError('Failed to translate the text. Please check the console for more details.');
     }
   }
+  
 
   async function translateWord(word) {
     const response = await fetch('/api/translate', {
@@ -208,6 +210,7 @@ function GuessingGame() {
     </div>
   );
 }
+
 
 function CSRPage() {
   const [isSubmitted, setIsSubmitted] = useState(false);

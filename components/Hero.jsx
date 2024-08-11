@@ -23,19 +23,12 @@ const Hero = () => {
           </div>
         </div>
         <div className="flex-1 mt-6 lg:mt-0">
-          <div className="mockup-window bg-base-300 border min-h-[315px]">
-            <div className="bg-base-200 flex flex-col justify-center items-center px-4 py-16">
-              <div className="mb-4">Hola</div>
-              <div className="w-full flex justify-center">
-                <div className="border border-gray-300 rounded-md w-full max-w-xs px-4 py-2 text-gray-700 bg-white">
-                  {inputValue}
-                </div>
-              </div>
-              {showCorrect && (
-                <div className="mt-4 text-green-600 font-bold">Correct</div>
-              )}
-            </div>
-          </div>
+        {/* Replacing mockup-window with an image */}
+        <img 
+          src="/hero_image.svg" 
+          alt="Language learning illustration" 
+          
+        />
         </div>
       </div>
     </div>
