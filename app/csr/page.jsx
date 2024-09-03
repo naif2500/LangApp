@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, createContext, useContext, useEffect } from 'react';
-import { withPageAuthRequired } from '@auth0/nextjs-auth0/client';
+import { useUser, withPageAuthRequired } from '@auth0/nextjs-auth0/client';
 
 const WordContext = createContext();
 
@@ -27,6 +27,7 @@ function UploadPage({ onTextSubmit }) {
   const [inputText, setInputText] = useState('');
   const { setWords, targetLang, setTargetLang, sourceLang, setSourceLang } = useWords();
   const [error, setError] = useState(null);
+  const [pdfjs, setPdfjs] = useState(null);
 
   const languages = [
     { code: 'EN', name: 'English' },
@@ -37,6 +38,40 @@ function UploadPage({ onTextSubmit }) {
     { code: 'PT', name: 'Portuguese' },
     // Add more languages as needed
   ];
+
+  useEffect(() => {
+    if (typeof window !== "undefined") { // Ensures it's client-side
+      import('../../lib/pdf').then(pdfModule => {
+        setPdfjs(pdfModule.default);
+      });
+    }
+  }, []);
+
+  const handleFileUpload = async (event) => {
+    if (!pdfjs) return;  // Ensure pdfjs is loaded
+
+    const file = event.target.files[0];
+    if (file && file.type === 'application/pdf') {
+      try {
+        const loadingTask = pdfjs.getDocument(URL.createObjectURL(file));
+        const pdf = await loadingTask.promise;
+        let extractedText = '';
+
+        for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+          const page = await pdf.getPage(pageNum);
+          const textContent = await page.getTextContent();
+          extractedText += textContent.items.map(item => item.str).join(' ');
+        }
+
+        setInputText(extractedText); // Set the extracted text to state
+      } catch (error) {
+        console.error('Error extracting text from PDF:', error);
+        setError('Failed to extract text from PDF. Please try another file.');
+      }
+    } else {
+      setError('Please upload a PDF file.');
+    }
+  };
 
   async function handleTextSubmit() {
     setError(null);
@@ -80,33 +115,36 @@ function UploadPage({ onTextSubmit }) {
       <h2 style={{ textAlign: 'left', paddingLeft: '120px', paddingBottom: '10px' }}>
         Upload Text to Learn
       </h2>
-      <div>
-        <label>
-          Source Language:
-          <select value={sourceLang} onChange={(e) => setSourceLang(e.target.value)}>
-            {languages.map((lang) => (
-              <option key={lang.code} value={lang.code}>
-                {lang.name}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label style={{ marginLeft: '20px' }}>
-          Target Language:
-          <select value={targetLang} onChange={(e) => setTargetLang(e.target.value)}>
-            {languages.map((lang) => (
-              <option key={lang.code} value={lang.code}>
-                {lang.name}
-              </option>
-            ))}
-          </select>
-        </label>
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '20px', marginTop: '20px' }}>
+        <div>
+          <label>
+            Source Language:
+            <select value={sourceLang} onChange={(e) => setSourceLang(e.target.value)} style={{ marginLeft: '10px' }}>
+              {languages.map((lang) => (
+                <option key={lang.code} value={lang.code}>
+                  {lang.name}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label style={{ marginLeft: '20px' }}>
+            Target Language:
+            <select value={targetLang} onChange={(e) => setTargetLang(e.target.value)} style={{ marginLeft: '10px' }}>
+              {languages.map((lang) => (
+                <option key={lang.code} value={lang.code}>
+                  {lang.name}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+        <input type="file" onChange={handleFileUpload} accept="application/pdf"  />
       </div>
       <textarea
         value={inputText}
         onChange={(e) => setInputText(e.target.value)}
-        placeholder="Type or paste your text here"
-        style={{ width: '80%', height: '100px', padding: '10px', fontSize: '16px', border: '2px solid black' }}
+        placeholder="Type or paste your text here or upload a PDF"
+        style={{ width: '80%', height: '100px', padding: '10px', fontSize: '16px', border: '2px solid black', marginTop: '20px' }}
       />
       <br />
       <button
@@ -118,7 +156,13 @@ function UploadPage({ onTextSubmit }) {
       {error && <p style={{ color: 'red' }}>{error}</p>}
     </div>
   );
+
+  
+  
 }
+
+
+
 
 function GuessingGame() {
   const { words, targetLang, correctGuesses, setCorrectGuesses, setWords } = useWords();
@@ -132,64 +176,24 @@ function GuessingGame() {
     }
   }, [words]);
 
-  useEffect(() => {
-    updatePartialSentence();
-  }, [correctGuesses]);
-
   function checkAnswer() {
     if (userInput.toLowerCase() === currentWord.english.toLowerCase()) {
       setMessage('Correct!');
-      setCorrectGuesses(prevGuesses => [...prevGuesses, currentWord]); // Store correct guesses
-
-      // If the current word is a partial sentence, mark it so it won't form new sentences
-      if (currentWord.canFormSentence !== undefined) {
-        currentWord.canFormSentence = true;
-        setWords(prevWords => prevWords.map(word =>
-          word.english === currentWord.english ? { ...word, canFormSentence: true } : word
-        ));
-      }
-
+      setCorrectGuesses(prevGuesses => [...prevGuesses, currentWord]); 
     } else {
       setMessage(`Incorrect. The correct answer is ${currentWord.english}`);
     }
-    setCurrentWord(words[Math.floor(Math.random() * words.length)]);
+    
+    // Ensure targetLang is a valid string before using it
+    if (targetLang && typeof targetLang === 'string') {
+      setCurrentWord(words[Math.floor(Math.random() * words.length)]);
+    } else {
+      console.error('Invalid targetLang');
+    }
+    
     setUserInput('');
   }
-
-  function updatePartialSentence() {
-    const englishWords = words.map(word => word.english); // Original sentence words
-    const correctIndices = correctGuesses.map(guess => englishWords.indexOf(guess.english));
-
-    // Filter out words that are marked as complete sentences and shouldn't form new sentences
-    const nonSentenceWords = words.filter(word => !word.canFormSentence);
-    const nonSentenceEnglishWords = nonSentenceWords.map(word => word.english);
-    const nonSentenceIndices = correctGuesses
-      .map(guess => nonSentenceEnglishWords.indexOf(guess.english))
-      .filter(index => index !== -1);
-
-    // Check for consecutive indices
-    nonSentenceIndices.sort((a, b) => a - b);
-    let tempSentence = [];
-    for (let i = 0; i < nonSentenceIndices.length - 1; i++) {
-      if (nonSentenceIndices[i + 1] - nonSentenceIndices[i] === 1) {
-        // Build the partial sentence from consecutive correct guesses
-        tempSentence.push(correctGuesses[i][targetLang.toLowerCase()]);
-        if (tempSentence.length === 2) {
-          tempSentence.push(correctGuesses[i + 1][targetLang.toLowerCase()]);
-
-          // Add the formed 3-word sentence as a new "word" in the words array
-          const partialSentence = {
-            [targetLang.toLowerCase()]: tempSentence.join(' '),
-            english: correctGuesses.slice(i, i + 2).map(guess => guess.english).join(' '),
-            canFormSentence: false // Initially, set this to false since it's a new sentence
-          };
-          setWords(prevWords => [...prevWords, partialSentence]);
-          break; // Stop after forming a valid 3-word sequence
-        }
-      }
-    }
-  }
-
+  
   if (!currentWord) return <p>Loading...</p>;
 
   return (

@@ -1,5 +1,4 @@
 'use client';
-
 import React, { useState } from 'react';
 import { useUser } from '@auth0/nextjs-auth0/client';
 import PageLink from './PageLink';
@@ -22,14 +21,12 @@ const NavBar = () => {
             {user && (
               <>
                 <PageLink href="/csr" className="nav-link" testId="navbar-csr">
-                  Client-side rendered page
+                  Main
                 </PageLink>
                 <PageLink href="/ssr" className="nav-link" testId="navbar-ssr">
-                  Server-side rendered page
+                  Account info
                 </PageLink>
-                <PageLink href="/external" className="nav-link" testId="navbar-external">
-                  External API
-                </PageLink>
+                
               </>
             )}
           </div>
@@ -50,11 +47,12 @@ const NavBar = () => {
             </svg>
           </button>
         </div>
-        <div className={`flex items-center space-x-4 ${isOpen ? 'block' : 'hidden'} lg:flex`}>
+        {/* Desktop Login/Logout */}
+        <div className="hidden lg:flex items-center space-x-4">
           {!isLoading && !user && (
             <AnchorLink
               href="/api/auth/login"
-              className="bg-indigo-600 text-white text-center px-4 py-2 rounded-full shadow-md hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-600"
+              className="bg-sky-400 text-white text-center px-4 py-2 rounded-full shadow-md hover:bg-sky-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-600"
               tabIndex={0}
               testId="navbar-login-desktop"
             >
@@ -99,53 +97,36 @@ const NavBar = () => {
             </div>
           )}
         </div>
-      </div>
-      <div className={`lg:hidden ${isOpen ? 'block' : 'hidden'}`}>
-        <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-          <PageLink href="/" className="block nav-link" testId="navbar-home-mobile">
-            Home
-          </PageLink>
-          {user && (
-            <>
-              <PageLink href="/csr" className="block nav-link" testId="navbar-csr-mobile">
-                Client-side rendered page
-              </PageLink>
-              <PageLink href="/ssr" className="block nav-link" testId="navbar-ssr-mobile">
-                Server-side rendered page
-              </PageLink>
-              <PageLink href="/external" className="block nav-link" testId="navbar-external-mobile">
-                External API
-              </PageLink>
-            </>
-          )}
-          {!isLoading && !user && (
-            <AnchorLink
-              href="/api/auth/login"
-              className="block bg-indigo-600 text-white text-center px-4 py-2 rounded-full shadow-md hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-600"
-              tabIndex={0}
-              testId="navbar-login-mobile"
-            >
-              Log in
-            </AnchorLink>
-          )}
-          {user && (
-            <div className="mt-3 space-y-1">
-              <span className="block px-4 py-2 text-gray-800" data-testid="navbar-user-mobile">
-                {user.name}
-              </span>
-              <PageLink href="/profile" className="block px-4 py-2 text-gray-800" testId="navbar-profile-mobile">
-                Profile
-              </PageLink>
+        {/* Mobile Menu */}
+        <div className={`lg:hidden ${isOpen ? 'block' : 'hidden'}`}>
+          <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+            <PageLink href="/" className="block nav-link" testId="navbar-home-mobile">
+              Home
+            </PageLink>
+            {user && (
+              <>
+                <PageLink href="/csr" className="block nav-link" testId="navbar-csr-mobile">
+                  Client-side rendered page
+                </PageLink>
+                <PageLink href="/ssr" className="block nav-link" testId="navbar-ssr-mobile">
+                  Server-side rendered page
+                </PageLink>
+                <PageLink href="/external" className="block nav-link" testId="navbar-external-mobile">
+                  External API
+                </PageLink>
+              </>
+            )}
+            {!isLoading && !user && (
               <AnchorLink
-                href="/api/auth/logout"
-                className="block px-4 py-2 text-gray-800"
+                href="/api/auth/login"
+                className="block bg-sky-500 text-white text-center px-4 py-2 rounded-full shadow-md hover:bg-sky-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-600"
                 tabIndex={0}
-                testId="navbar-logout-mobile"
+                testId="navbar-login-mobile"
               >
-                Log out
+                Log in
               </AnchorLink>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
     </nav>
