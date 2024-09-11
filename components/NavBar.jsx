@@ -10,26 +10,28 @@ const NavBar = () => {
   const toggle = () => setIsOpen(!isOpen);
 
   return (
-    <nav className="bg-white shadow-md">
-      <div className="container mx-auto flex items-center justify-between py-4 px-6">
-        <div className="flex items-center">
-          <img src="/logo1.svg" alt="Logo" width="150" height="50" />
-          <div className="hidden lg:flex space-x-4 ml-4">
-            <PageLink href="/" className="nav-link" testId="navbar-home">
-              Home
-            </PageLink>
-            {user && (
-              <>
-                <PageLink href="/csr" className="nav-link" testId="navbar-csr">
-                  Main
-                </PageLink>
-                <PageLink href="/ssr" className="nav-link" testId="navbar-ssr">
-                  Account info
-                </PageLink>
-                
-              </>
-            )}
+    <nav className="bg-white">
+      <div className=" mx-auto flex items-center  justify-between py-4 px-20">
+        <div className="flex-shrink-0">
+          <img src="/logo1.svg" alt="Logo" width="120" height="50" />
           </div>
+
+
+          <div className="flex items-center space-x-4">
+
+          <PageLink href="/" className="nav-link text-gray-900 font-medium" testId="navbar-home">
+            Home
+          </PageLink>
+          {user && (
+            <>
+              <PageLink href="/csr" className="nav-link text-gray-900 font-medium" testId="navbar-csr">
+                Main
+              </PageLink>
+              <PageLink href="/ssr" className="nav-link text-gray-900 font-medium" testId="navbar-ssr">
+                Account info
+              </PageLink>
+            </>
+          )}
         </div>
         <div className="flex lg:hidden">
           <button
