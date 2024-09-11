@@ -7,7 +7,6 @@ import { faVolumeUp } from '@fortawesome/free-solid-svg-icons';
 import { faArrowLeft } from '@fortawesome/free-solid-svg-icons'; // Import the arrow icon
 import Flag from 'react-world-flags';
 
-import Sidebar from './SideBar';
 
 
 const WordContext = createContext();
