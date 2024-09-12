@@ -17,21 +17,21 @@ const NavBar = () => {
           </div>
 
 
-          <div className="flex items-center space-x-4">
+          <div className="flex text-lg justify-center  space-x-8">
 
           <PageLink href="/" className="nav-link text-gray-900 font-medium" testId="navbar-home">
             Home
           </PageLink>
-          {user && (
-            <>
-              <PageLink href="/csr" className="nav-link text-gray-900 font-medium" testId="navbar-csr">
-                Main
-              </PageLink>
-              <PageLink href="/ssr" className="nav-link text-gray-900 font-medium" testId="navbar-ssr">
-                Account info
-              </PageLink>
-            </>
-          )}
+          <PageLink href="/LanguageCarousel" className="nav-link text-gray-900 font-medium" testId="navbar-home">
+            How it works
+          </PageLink>
+          <PageLink href="/Content" className="nav-link text-gray-900 font-medium" testId="navbar-home">
+            Languages
+          </PageLink>
+          <PageLink href="/Content" className="nav-link text-gray-900 font-medium" testId="navbar-home">
+            Pricing
+          </PageLink>
+          
         </div>
         <div className="flex lg:hidden">
           <button
@@ -52,14 +52,25 @@ const NavBar = () => {
         {/* Desktop Login/Logout */}
         <div className="hidden lg:flex items-center space-x-4">
           {!isLoading && !user && (
-            <AnchorLink
-              href="/api/auth/login"
-              className="bg-sky-400 text-white text-center px-4 py-2 rounded-full shadow-md hover:bg-sky-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-600"
-              tabIndex={0}
-              testId="navbar-login-desktop"
-            >
-              Log in
-            </AnchorLink>
+            
+            <>
+      <AnchorLink
+        href="/api/auth/login"
+        className=" text-sky-400 text-center px-4 py-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-600"
+        tabIndex={0}
+        testId="navbar-signup-desktop"
+      >
+        Log in
+      </AnchorLink>
+      <AnchorLink
+        href="/api/auth/login"
+        className="bg-white border-sky-400 border-2 text-sky-400 text-center px-4 py-2 rounded-xl hover:bg-sky-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-600"
+        tabIndex={0}
+        testId="navbar-login-desktop"
+      >
+        Sign up
+      </AnchorLink>
+    </>
           )}
           {user && (
             <div className="relative">
