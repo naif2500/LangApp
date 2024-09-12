@@ -55,7 +55,7 @@ const NavBar = () => {
             
             <>
       <AnchorLink
-        href="/api/auth/login"
+        href="/api/auth/login?returnTo=/csr"
         className=" text-sky-400 text-center px-4 py-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-600"
         tabIndex={0}
         testId="navbar-signup-desktop"
@@ -63,7 +63,7 @@ const NavBar = () => {
         Log in
       </AnchorLink>
       <AnchorLink
-        href="/api/auth/login"
+        href="/api/auth/login?returnTo=/csr"
         className="bg-white border-sky-400 border-2 text-sky-400 text-center px-4 py-2 rounded-xl hover:bg-sky-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-600"
         tabIndex={0}
         testId="navbar-login-desktop"
