@@ -15,7 +15,7 @@ const Content = () => (
         <div className="flex-1 text-left">
           <h2 className=" font-bold text-gray-900">Step 1: Choose Your Content</h2>
           <p className="mt-4 text-lg text-gray-700">
-Paste the text you're passionate about—whether it’s lyrics from a French song, a scene from a Spanish movie, or a passage from a Japanese manga. Learning a language becomes more fun and meaningful when it’s centered around what you love.
+Paste the text you're passionate about—whether its lyrics from a French song, a scene from a Spanish movie, or a passage from a Japanese manga. Learning a language becomes more fun and meaningful when its centered around what you love.
 
 
           </p>

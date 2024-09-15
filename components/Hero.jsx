@@ -13,7 +13,7 @@ const Hero = () => {
         Learn new <span className="text-sky-400">languages</span><br/>with what you love
       </h1>
       {/* Subheading */}
-      <p className="text-gray-500 text-lg mt-4 max-w-lg mx-auto">
+      <p className="text-gray-500 text-lg mt-4 max-w-xl mx-auto">
       Turn your favorite content into personalized language lessons. Discover the joy of learning with content that truly matters to you.      </p>
 
       {/* Floating Language Labels */}
