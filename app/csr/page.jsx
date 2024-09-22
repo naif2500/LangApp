@@ -13,6 +13,9 @@ const WordContext = createContext();
 
 function WordProvider({ children }) {
   const [words, setWords] = useState([]);
+  const [shortSentences, setShortSentences] = useState([]);  // Store sentences for levels 2 and 3
+  const [longSentences, setLongSentences] = useState([]);  // Store sentences for levels 2 and 3
+
   const [targetLang, setTargetLang] = useState('ES'); // Default target language
   const [sourceLang, setSourceLang] = useState('EN'); // Default source language
   const [correctGuesses, setCorrectGuesses] = useState([]); 
@@ -22,7 +25,7 @@ function WordProvider({ children }) {
 
 
   return (
-    <WordContext.Provider value={{ words, setWords, targetLang, setTargetLang, sourceLang, setSourceLang, correctGuesses, setCorrectGuesses,  level, setLevel,  correctGuessesCount, setCorrectGuessesCount }}>
+    <WordContext.Provider value={{ words, setWords,shortSentences, setShortSentences, longSentences, setLongSentences, targetLang, setTargetLang, sourceLang, setSourceLang, correctGuesses, setCorrectGuesses,  level, setLevel,  correctGuessesCount, setCorrectGuessesCount }}>
       {children}
     </WordContext.Provider>
   );
@@ -34,11 +37,14 @@ function useWords() {
 
 function UploadPage({ onTextSubmit }) {
   const [inputText, setInputText] = useState('');
-  const { setWords, targetLang, setTargetLang, sourceLang, setSourceLang, level } = useWords();
+  const {words, shortSentences, longSentences, setWords, targetLang, setLongSentences, setShortSentences, setTargetLang, sourceLang, setSourceLang, level } = useWords();
   const [error, setError] = useState(null);
   const [pdfjs, setPdfjs] = useState(null);
   const { user, isLoading } = useUser(); // Get user info from Auth0
   const [isOpen, setIsOpen] = useState(false); // For dropdown toggle
+
+ 
+  
 
   const toggleDropdown = () => setIsOpen(!isOpen);
 
@@ -86,56 +92,101 @@ function UploadPage({ onTextSubmit }) {
       setError('Please upload a PDF file.');
     }
   };
+ 
 
-  async function handleTextSubmit() {
-    setError(null);
-    let textArray;
-  
-    if (level === 1) {
-      // Split the input text into words for level 1
-      textArray = inputText.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, "").split(" ");
-    } else {
-      // Split into sentences or longer text for level 2 and 3
-      textArray = inputText.match(/[^.!?]+[.!?]+/g) || [inputText];
-    }
-  
-    try {
-      onTextSubmit();
-      const translatedArray = await Promise.all(
-        textArray.map(async (text) => {
-          const translation = await translateWord(text);
-          return {
-            [targetLang.toLowerCase()]: translation,
-            [sourceLang.toLowerCase()]: text  // Store both source and target versions
-          };
-        })
-      );
-      setWords(translatedArray);  // Store both source and target sentencesø
-    } catch (err) {
-      console.error(err);
-      setError("Failed to translate the text. Please check the console for more details.");
-    }
-  }
-  
-  
+// Handle text submission and split it based on level
+async function handleTextSubmit() {
+  setError(null);
+
   
 
-  async function translateWord(sentence) {
-    const response = await fetch('/api/translate', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ word: sentence, sourceLang, targetLang }), // Pass the sentence to the API
-    });
-  
-    if (!response.ok) {
-      throw new Error(`Error: ${response.statusText}`);
-    }
-  
-    const data = await response.json();
-    return data.translation;  // Return the translated sentence
+  try {
+   // Always split the text into words, short sentences, and long sentences
+   const splitWords = inputText.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, "").split(" "); // Split into words
+   const splitShortSentences = extractTwoWordSentences(inputText); // Split into two-word sentences
+   const splitLongSentences = splitIntoThreeWordSentences(inputText); // Split into three-word sentences
+
+   // Translate each set of split text separately
+   const translatedWords = await processTranslations(splitWords); // Translate the words
+   const translatedShortSentences = await processTranslations(splitShortSentences); // Translate short sentences
+   const translatedLongSentences = await processTranslations(splitLongSentences); // Translate long sentences
+
+   // Set all arrays independently
+   setWords(translatedWords); // Set words
+   setShortSentences(translatedShortSentences); // Set short sentences
+   setLongSentences(translatedLongSentences); // Set long sentences
+
+
+    onTextSubmit();  // Notify the parent component of submission
+  } catch (err) {
+    console.error(err);
+    setError("Failed to process or translate the text.");
   }
+}
+
+// Extract short two-word sentences for level 2
+function extractTwoWordSentences(text) {
+  const words = text.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, "").split(" ");
+  const twoWordSentences = [];
+  
+  for (let i = 0; i < words.length - 1; i += 2) {
+    twoWordSentences.push(`${words[i]} ${words[i + 1]}`);
+  }
+
+  return twoWordSentences;
+}
+
+// Split the text into sentences of maximum 3 words for Level 3
+function splitIntoThreeWordSentences(text) {
+  const words = text.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, "").split(" ");  // Split text into words
+  const threeWordSentences = [];
+  
+  for (let i = 0; i < words.length; i += 3) {
+    // Join every three words into a sentence, or add the remaining words as the last sentence
+    const sentence = words.slice(i, i + 3).join(" ");
+    threeWordSentences.push(sentence);
+  }
+
+  return threeWordSentences;  // Return the array of three-word sentences
+}
+
+// Process and translate the text
+async function processTranslations(textArray) {
+  try {
+    const translatedArray = await Promise.all(
+      textArray.map(async (text) => {
+        const translation = await translateWord(text);
+        return {
+          [targetLang.toLowerCase()]: translation,
+          [sourceLang.toLowerCase()]: text  // Store both source and target versions
+        };
+      })
+    );
+    return translatedArray;
+  } catch (err) {
+    console.error(err);
+    setError("Failed to translate the text.");
+    return [];
+  }
+}
+
+// Translate individual word or sentence
+async function translateWord(sentence) {
+  const response = await fetch('/api/translate', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ word: sentence, sourceLang, targetLang }), // Pass the sentence to the API
+  });
+
+  if (!response.ok) {
+    throw new Error(`Error: ${response.statusText}`);
+  }
+
+  const data = await response.json();
+  return data.translation;  // Return the translated sentence
+}
   
   const getFlagCode = (langCode) => {
     switch (langCode) {
@@ -283,9 +334,10 @@ function UploadPage({ onTextSubmit }) {
 
 
 function GuessingGame({ goBack }) {
-  const { words, targetLang, sourceLang, correctGuessesCount, setCorrectGuessesCount, level, setLevel, correctGuesses, setCorrectGuesses } = useWords();
+  const { words, shortSentences, longSentences, targetLang, sourceLang, correctGuessesCount, setCorrectGuessesCount, level, setLevel, correctGuesses, setCorrectGuesses } = useWords();
   const [currentWord, setCurrentWord] = useState(null);
   const [hoveredWord, setHoveredWord] = useState(null); // State to track hovered word
+  const [displayedWords, setDisplayedWords] = useState([]); // To store the displayed words
 
   const [userInput, setUserInput] = useState('');
   const [message, setMessage] = useState('');
@@ -294,36 +346,44 @@ function GuessingGame({ goBack }) {
 
   const toggleDropdown = () => setIsOpen(!isOpen);
 
+  console.log("Words Array:", words);
+  console.log("Short Sentences Array:", shortSentences);
+  console.log("Long Sentences Array:", longSentences);
+
+  
+
   // Function to select the next word or sentence based on the current level
   function getNextWord() {
-    if (words.length > 0) {
-      let nextSelection;
-      
-      if (level === 1) {
-        // Level 1: Single random word
-        nextSelection = words[Math.floor(Math.random() * words.length)];
-        setCurrentWord(nextSelection[targetLang.toLowerCase()]);
-      } else if (level === 2) {
-        // Level 2: Pick two random words and join them as a string
-        const shuffledWords = words.sort(() => 0.5 - Math.random());
-        const selectedWords = shuffledWords.slice(0, 2);  // Pick 2 words
-        const wordString = selectedWords.map(wordObj => wordObj[targetLang.toLowerCase()]).join(' ');
-        setCurrentWord(wordString);
-      } else if (level === 3) {
-        // Level 3: Pick three random words and join them as a string
-        const shuffledWords = words.sort(() => 0.5 - Math.random());
-        const selectedWords = shuffledWords.slice(0, 3);  // Pick 3 words
-        const wordString = selectedWords.map(wordObj => wordObj[targetLang.toLowerCase()]).join(' ');
-        setCurrentWord(wordString);
-      }
+    let currentArray;
+    if (level === 1) {
+      // Level 1: Single random word
+      currentArray = words;
+    } else if (level === 2) {
+      // Level 2: Short sentences (two-word sentences)
+      currentArray = shortSentences;
+    } else {
+      // Level 3: Long sentences (three-word sentences)
+      currentArray = longSentences;
+    }
+
+    if (currentArray.length > 0) {
+      let nextSelection = currentArray[Math.floor(Math.random() * currentArray.length)];
+      setCurrentWord(nextSelection[targetLang.toLowerCase()]);
+
+      console.log("Current Word:", nextSelection[targetLang.toLowerCase()]);
+
+      // Store the selected word or sentence in the displayedWords array for display
+      setDisplayedWords(prevWords => [...prevWords, nextSelection[targetLang.toLowerCase()]]);
     }
   }
+
+
   
 
   // Call getNextWord when the component first loads or words array changes
   useEffect(() => {
     getNextWord();
-  }, [words, level]);
+  }, [words, shortSentences, longSentences, level]);
 
   // Update the level when a certain number of correct guesses are made
   useEffect(() => {
@@ -336,40 +396,48 @@ function GuessingGame({ goBack }) {
 
 
   const getSourceWord = () => {
-    if (!currentWord || !words) return null;
-    const wordObj = words.find(word => word[targetLang.toLowerCase()] === currentWord);
+    let currentArray = level === 1 ? words : level === 2 ? shortSentences : longSentences;
+    if (!currentWord || !currentArray) return null;
+  
+    // Find the corresponding source language word or sentence
+    const wordObj = currentArray.find(w => w[targetLang.toLowerCase()] === currentWord);
+  
     return wordObj ? wordObj[sourceLang.toLowerCase()] : null;
   };
+  
+  
 
-  // Function to check the user's answer
-  function checkAnswer() {
-    const cleanUserInput = userInput.toLowerCase().trim().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, "");
-  
-    // Find the corresponding source language word for the current target language word
-    const correctWord = words.find(word => word[targetLang.toLowerCase()] === currentWord);
-  
-    // Check if `correctWord` exists and `sourceLang` is a valid key in `correctWord`
-    if (correctWord && correctWord[sourceLang.toLowerCase()]) {
-      if (cleanUserInput === correctWord[sourceLang.toLowerCase()].toLowerCase()) {
-        setMessage('Correct!');
-        setCorrectGuessesCount(correctGuessesCount + 1);
-        setCorrectGuesses([...correctGuesses, currentWord]); // Store the correct guess
-        getNextWord(); // Move to the next word(s)
-      }else {
-        setMessage(`Incorrect. The correct answer is: ${correctWord[sourceLang.toLowerCase()]}`);
-  
-        // Optionally add a small delay before moving to the next word after showing the message
-        setTimeout(() => {
-          getNextWord(); // Move to the next word(s) after an incorrect answer
-        }, 2000); // Adjust the delay time as needed (e.g., 2000ms = 2 seconds)
-      }
+// Function to check the user's answer
+function checkAnswer() {
+  const cleanUserInput = userInput.toLowerCase().trim().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, "");
+
+  // Determine whether to check against words, short sentences, or long sentences
+  const currentArray = level === 1 ? words : level === 2 ? shortSentences : longSentences;
+  const correctWordOrSentence = currentArray.find(word => word[targetLang.toLowerCase()] === currentWord);
+
+  // Check if the answer is correct
+  if (correctWordOrSentence && correctWordOrSentence[sourceLang.toLowerCase()]) {
+    const correctAnswer = correctWordOrSentence[sourceLang.toLowerCase()].toLowerCase();
+
+    if (cleanUserInput === correctAnswer) {
+      setMessage('Correct!');
+      setCorrectGuessesCount(prevCount => prevCount + 1);
+      setCorrectGuesses(prevGuesses => [...prevGuesses, currentWord]);
+      getNextWord(); // Move to the next word or sentence
     } else {
-      setMessage('Error: The correct word could not be found or the language key is invalid.');
-      console.error('correctWord or sourceLang is undefined:', { correctWord, sourceLang });
+      setMessage(`Incorrect. The correct answer is: ${correctWordOrSentence[sourceLang.toLowerCase()]}`);
+      setTimeout(() => {
+        getNextWord(); // Move to the next word or sentence after an incorrect answer
+      }, 2000); // Adjust the delay time as needed (e.g., 2000ms = 2 seconds)
     }
-    setUserInput(""); // Reset userInput state to an empty string
-
+  } else {
+    setMessage('Error: The correct word or sentence could not be found.');
+    console.error('correctWordOrSentence or sourceLang is undefined:', { correctWordOrSentence, sourceLang });
   }
+
+  setUserInput(''); // Reset userInput state to an empty string
+}
+
   
   
   
@@ -442,45 +510,40 @@ function GuessingGame({ goBack }) {
 
 
 
-  {/* Middle Content Area */}
-  <div style={{ flex: 1, overflowY: 'auto', padding: '0 20px' }}> 
-  <div style={{ 
-    padding: '10px', 
-    paddingLeft: '12px',  
-    paddingRight: '12px',   
-    backgroundColor: '#f0f0f0', 
-    textAlign: 'left',  
-    display: 'flex',  /* Flexbox layout to align items horizontally */
-    alignItems: 'center',  /* Vertically center items */
-     display: 'inline-block',
-    borderBottom: '1px solid #ccc', 
-    borderRadius: '15px', 
-    marginTop: '100px', 
-    marginLeft: '20px', 
-    maxWidth: '100%' 
-}}>
-    <button 
-        onClick={readWord} 
-        style={{ marginRight: '10px',  display: 'inline-block' }}  /* Add margin to separate button and text */
-    >
+ {/* Middle Content Area */}
+<div style={{ flex: 1, overflowY: 'auto', padding: '0 20px', display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+  {displayedWords.map((word, index) => (
+    <div key={index} style={{ 
+      padding: '10px', 
+      backgroundColor: '#f0f0f0', 
+      textAlign: 'left',  
+      display: 'flex',  // Use Flexbox to align button and text side by side
+      alignItems: 'center',  // Vertically center the items
+      borderBottom: '1px solid #ccc', 
+      borderRadius: '15px', 
+      marginTop: '10px', 
+      marginLeft: '20px', 
+      maxWidth: '60%',  // Control max width of each bubble
+      alignSelf: 'flex-start'  // Align each bubble to the left
+    }}>
+      <button onClick={readWord} style={{ marginRight: '10px' }}>
         <FontAwesomeIcon icon={faVolumeUp} />
-    </button>
-
-    <p
-            style={{ margin: 0, display: 'inline-block', cursor: 'pointer', textDecoration: 'underline dotted',textUnderlineOffset: '5px'
-            }}
-            onMouseEnter={() => setHoveredWord(true)}  // Show translation
-            onMouseLeave={() => setHoveredWord(false)}  // Hide translation
-          >
-            {hoveredWord ? translation : currentWord} {/* Show translation if hovered */}
-    </p>
+      </button>
+      
+      <p
+        style={{ margin: 0, cursor: 'pointer', textDecoration: 'underline dotted', textUnderlineOffset: '5px' }}
+        onMouseEnter={() => setHoveredWord(index)}  // Show translation for the hovered word
+        onMouseLeave={() => setHoveredWord(null)}   // Hide translation when not hovering
+      >
+        {hoveredWord === index ? getSourceWord() : word}  {/* Show translation if hovered */}
+      </p>
+    </div>
+  ))}
+  
+  <p className="mt-4">{message}</p>
 </div>
 
-      <p className="mt-4">{message}</p>
-    
 
-      {/* Additional content can be added here if needed */}
-  </div>
 
   <div style={{ display: 'flex', alignItems: 'center', padding: '10px', borderTop: '2px solid #808080'}}>
           

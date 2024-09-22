@@ -4,7 +4,13 @@ export default async function handler(req, res) {
       return res.status(405).json({ error: 'Method not allowed' });
     }
   
-    const { word } = req.body;
+    const { word, sourceLang, targetLang } = req.body;
+
+     // Ensure that word, sourceLang, and targetLang are provided
+  if (!word || !sourceLang || !targetLang) {
+    return res.status(400).json({ error: 'Missing required fields: word, sourceLang, or targetLang' });
+  }
+
   
     try {
       const response = await fetch('https://api-free.deepl.com/v2/translate', {
@@ -15,8 +21,8 @@ export default async function handler(req, res) {
         },
         body: new URLSearchParams({
           text: word,
-          source_lang: 'EN',
-          target_lang: 'ES'
+          source_lang: sourceLang.toUpperCase(),  // Use the dynamic source language
+          target_lang: targetLang.toUpperCase()   // Use the dynamic target language
         })
       });
   
