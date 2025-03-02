@@ -14,12 +14,8 @@ As you accurately translate more words, the app gradually increases the length a
           
         </div>
         <div className="flex-1 mt-6 lg:mt-0">
-          <div className="mockup-window bg-base-300 border min-h-[315px]">
-            <div className="bg-base-200 flex flex-col justify-center items-center px-4 py-16">
-              <div className="mb-4">Hola</div>
-             
-            </div>
-          </div>
+        <img src="/images/practice.png" alt="content" className="w-full h-full shadow-xl" />
+
         </div>
         
       </div>
